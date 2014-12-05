@@ -1,0 +1,26 @@
+.button.dpd-big-button {
+	float: right;
+}
+
+.dpd-big-single-button label {
+	float: left;
+	display: inline-block;
+	line-height: 28px;
+	padding: 0 0 0 24px;
+	background: url(dpd.png) no-repeat left center;
+}
+
+.dpd-big-single-button a {
+	float: right !important;
+}
+		
+.type-shop_order .column-order_actions a.button.dpd-small-button {
+	float: left;
+	width: 26px;
+	height: 26px;
+	padding: 3px 2px;
+}
+
+.type-shop_order .column-order_actions a.button.dpd-small-button img {
+	width: 16px;
+}
