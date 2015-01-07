@@ -4,7 +4,7 @@ Plugin Name: WooCommerce DPD Weblabel Export
 Plugin URI: http://visztpeter.me
 Description: Rendelésinfó exportálása DPD Weblabel importáláshoz
 Author: Viszt Péter
-Version: 1.0
+Version: 1.0.1
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -25,7 +25,7 @@ class WC_DPD_Weblabel {
 		self::$plugin_basename = plugin_basename(__FILE__);
 		self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 		self::$plugin_path = trailingslashit(dirname(__FILE__));
-		self::$version = '1.0'; 
+		self::$version = '1.0.1'; 
 
 		add_action( 'admin_init', array( $this, 'wc_dpd_weblabel_admin_init' ) );
 		add_filter( 'woocommerce_shipping_settings', array( $this, 'settings' ) );
@@ -82,7 +82,7 @@ class WC_DPD_Weblabel {
 	public function single_order_button($order) {
 		?>
 		<li class="wide dpd-big-single-button">
-			<label>DPD Weblabel</label> <a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>">Letöltés</a>
+			<label><?php _e('DPD Weblabel','wc-szamlazz'); ?></label> <a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('Letöltés','wc-szamlazz'); ?></a>
 		</li>
 		<?php		
 	}
@@ -93,7 +93,7 @@ class WC_DPD_Weblabel {
 
 		if ( $typenow == 'shop_order' ) {
 			?>
-			<a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button dpd-big-button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>">DPD Export</a>
+			<a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button dpd-big-button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('DPD Weblabel Export','wc-szamlazz'); ?></a>
 			<?php
 		}
 	}
@@ -119,9 +119,28 @@ class WC_DPD_Weblabel {
 			$args = array(
 				'post_type' => 'shop_order',
 				'post_status' => 'publish',
-				'posts_per_page' => '-1',
-				'post__in' => array($_GET['order_id'])
+				'posts_per_page' => '-1'
 			);
+			
+			if(isset($_GET['order_id'])) {
+				if($_GET['order_id'] != '') {
+					$args['post__in'] = array($_GET['order_id']);
+				}
+			}
+			
+			//2.2 előtt taxonomy volt a rendelés státusz
+			global $woocommerce;
+			if($woocommerce->version<2.2) {
+				$args['tax_query'] = array(
+					array(
+						'taxonomy' => 'shop_order_status',
+						'field' => 'slug',
+						'terms' => array('processing')
+					)
+				);
+			} else {
+				$args['post_status'] =  array( 'wc-processing');
+			}
 			
 			$orders = new WP_Query($args);
 			
