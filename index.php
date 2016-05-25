@@ -1,10 +1,10 @@
-<?php 
+<?php
 /*
 Plugin Name: WooCommerce DPD Weblabel Export
 Plugin URI: http://visztpeter.me
 Description: Rendelésinfó exportálása DPD Weblabel importáláshoz
 Author: Viszt Péter
-Version: 1.0.1
+Version: 1.0.3
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -25,7 +25,7 @@ class WC_DPD_Weblabel {
 		self::$plugin_basename = plugin_basename(__FILE__);
 		self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 		self::$plugin_path = trailingslashit(dirname(__FILE__));
-		self::$version = '1.0.1'; 
+		self::$version = '1.0.3';
 
 		add_action( 'admin_init', array( $this, 'wc_dpd_weblabel_admin_init' ) );
 		add_filter( 'woocommerce_shipping_settings', array( $this, 'settings' ) );
@@ -35,10 +35,11 @@ class WC_DPD_Weblabel {
  		add_action( 'woocommerce_order_actions_start', array( $this, 'single_order_button' ) );
 
     }
-    
+
     //Add CSS & JS
 	public function wc_dpd_weblabel_admin_init() {
         wp_enqueue_style( 'wc_dpd_css', plugins_url( '/global.css',__FILE__ ) );
+				wp_enqueue_script( 'wc_dpd_js', plugins_url( '/global.js',__FILE__ ) );
     }
 
 	//Settings
@@ -48,12 +49,12 @@ class WC_DPD_Weblabel {
 			if ( isset( $section['id'] ) && 'shipping_options' == $section['id'] && isset( $section['type'] ) && 'sectionend' == $section['type'] ) {
 				$shipping_methods = array();
 				global $woocommerce;
-	
+
 				$payment_methods[''] = __( 'Válassz egy fizetési módot', 'wc_dpd_weblabel' );
 				foreach ( WC()->payment_gateways->payment_gateways() as $gateway ) {
 					if($gateway->enabled == 'yes') $payment_methods[$gateway->id] = $gateway->get_title();
 				}
-	
+
 				$updated_settings[] = array(
 					'name'     => __( 'DPD - Utánvételes Fizetési Mód', 'wc_dpd_weblabel' ),
 					'id'       => 'wc_dpd_cash_payment_gateway',
@@ -77,37 +78,44 @@ class WC_DPD_Weblabel {
 		</a>
 		<?php
 	}
-	
+
 	//Single order button
 	public function single_order_button($order) {
 		?>
 		<li class="wide dpd-big-single-button">
-			<label><?php _e('DPD Weblabel','wc-szamlazz'); ?></label> <a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('Letöltés','wc-szamlazz'); ?></a>
+			<label><?php _e('DPD Weblabel','wc-szamlazz'); ?></label> <a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order" ); ?>" class="button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('Letöltés','wc-szamlazz'); ?></a>
 		</li>
-		<?php		
+		<?php
 	}
-	
+
 	//Global button
 	public function restrict_manage_posts() {
 		global $typenow, $wp_query;
 
 		if ( $typenow == 'shop_order' ) {
 			?>
-			<a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button dpd-big-button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('DPD Weblabel Export','wc-szamlazz'); ?></a>
+			<a href="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" data-baseurl="<?php echo admin_url( "?download_dpd_csv=1&order_id=$order->id" ); ?>" class="button dpd-big-button" id="dpd-export-button" target="_blank" alt="" data-tip="<?php _e('DPD Weblabel Export','wc-szamlazz'); ?>"><?php _e('DPD Weblabel Export','wc-szamlazz'); ?><small></small></a>
 			<?php
 		}
 	}
-	
+
 	//Generate CSV file for DPD
 	public function generate_csv() {
 
 		if (!empty($_GET['download_dpd_csv'])) {
-			if ( !current_user_can( 'edit_shop_order' ) )  {
+			if ( !current_user_can( 'administrator' ) )  {
 				wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 			}
-			
-			$filename = 'dpd'.date('-Y-m-d-H:i').'.csv';
-			
+
+			//Set file name
+			if(isset($_GET['order_id'])) {
+				if($_GET['order_id'] != '') {
+					$filename = 'dpd'.date('-Y-m-d-H:i').'-'.$_GET['order_id'].'.csv';
+				}
+			} else {
+				$filename = 'dpd'.date('-Y-m-d-H:i').'.csv';
+			}
+
 			header("Pragma: public");
 			header("Expires: 0");
 			header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
@@ -115,67 +123,72 @@ class WC_DPD_Weblabel {
 			header("Content-Type: application/octet-stream");
 			header("Content-Disposition: attachment; filename=\"$filename\";" );
 			header("Content-Transfer-Encoding: binary");
-			
+
 			$args = array(
 				'post_type' => 'shop_order',
-				'post_status' => 'publish',
+				'post_status' => 'any',
 				'posts_per_page' => '-1'
 			);
-			
+
 			if(isset($_GET['order_id'])) {
 				if($_GET['order_id'] != '') {
-					$args['post__in'] = array($_GET['order_id']);
+					$orderids = explode('|',$_GET['order_id']);
+					$args['post__in'] = $orderids;
 				}
-			}
-			
-			//2.2 előtt taxonomy volt a rendelés státusz
-			global $woocommerce;
-			if($woocommerce->version<2.2) {
-				$args['tax_query'] = array(
-					array(
-						'taxonomy' => 'shop_order_status',
-						'field' => 'slug',
-						'terms' => array('processing')
-					)
-				);
 			} else {
-				$args['post_status'] =  array( 'wc-processing');
+
+				//2.2 előtt taxonomy volt a rendelés státusz
+				global $woocommerce;
+				if($woocommerce->version<2.2) {
+					$args['tax_query'] = array(
+						array(
+							'taxonomy' => 'shop_order_status',
+							'field' => 'slug',
+							'terms' => array('processing')
+						)
+					);
+				} else {
+					$args['post_status'] =  array( 'wc-processing');
+				}
+
 			}
-			
+
 			$orders = new WP_Query($args);
-			
+
+			$dpd_country_codes = array('AT' => 'A', 'BA' => 'BIH', 'DE' => 'D', 'ES' => 'E', 'FI' => 'FIN', 'FR' => 'F', 'HU' => 'H', 'IE' => 'IRL', 'IT' => 'I', 'LU' => 'L', 'NO' => 'N', 'PT' => 'P', 'RU' => 'GUS', 'SE' => 'S', 'SI' => 'SLO');
+
 			$output = fopen("php://output", "w");
 			while ( $orders->have_posts() ) : $orders->the_post();
 				global $post;
 				$order_id = get_the_ID();
 				$order = new WC_Order($order_id);
-				
+
 				$order_type = 'D';
-				
+
 				$cash_payment_method = get_option( 'wc_dpd_cash_payment_gateway', 'none' );
-				
+
 				//Ha utánvétes payu fizetés
 				if($order->payment_method == $cash_payment_method) {
 					$order_type = 'D-COD';
 				}
-	
+
 				//Súly
 				$weight = 0;
 				foreach( $order->get_items() as $item ) {
 					$_product = new WC_Product($item['product_id']);
 					$weight += $item['qty']*$_product->get_weight();
 				}
-							
+
 				$csv_row = array();
 				$csv_row[0] = $order_type; //Csomag típusa, D normál, D-COD utánvétes
 				$csv_row[1] = $weight; //Súly
 				$csv_row[2] = ''; //Utánvét összeg
 					if($order->payment_method == $cash_payment_method) { $csv_row[2] = $order->order_total; }
 				$csv_row[3] = ''; //Utánvét ref.
-					if($order->payment_method == $cash_payment_method) { $csv_row[3] = '#'.$order_id; }
-				$csv_row[4] = '#'.$order_id; //Referencia szám(rendelés szám)
+					if($order->payment_method == $cash_payment_method) { $csv_row[3] = $order->get_order_number(); }
+				$csv_row[4] = $order->get_order_number(); //Referencia szám(rendelés szám)
 				$csv_row[5] = ''; //Címtörzs ID(???)
-				
+
 				//Ha cégnév van, az az elsődleges, különben csak a nevet küldjük
 				if($order->shipping_company) {
 					$csv_row[6] = $order->shipping_company;
@@ -183,27 +196,32 @@ class WC_DPD_Weblabel {
 				} else {
 					$csv_row[6] = $order->shipping_first_name.' '.$order->shipping_last_name;
 					$csv_row[7] = ''; //Név
-				}		
+				}
 				$csv_row[8] = $order->shipping_address_1; //Cím 1
 				$csv_row[9] = $order->shipping_address_2; //Cím 2
-				$csv_row[10] = 'H'; //Országkód
+				if(array_key_exists($order->shipping_country, $dpd_country_codes)) {
+					$csv_row[10] = $dpd_country_codes[$order->shipping_country]; //Országkód
+				} else {
+					$csv_row[10] = $order->shipping_country; //Országkód
+				}
 				$csv_row[11] = $order->shipping_postcode; //Irányítószám
 				$csv_row[12] = $order->shipping_city; //Város
 				$csv_row[13] = $order->billing_phone; //Telefon
 				$csv_row[14] = ''; //Fax
 				$csv_row[15] = $order->billing_email; //Email
-				$csv_row[16] = $post->post_excerpt; //Megjegyzés
-				
+				$csv_row[16] = ''; //Céggel kapcsolatos megjegyzés
+
+				$csv_row = apply_filters('wc_dpd_weblabel_item',$csv_row,$order_id);
+
 				fputcsv($output, $csv_row, ';');
-				
+
 			endwhile;
 			fclose($output);
-			
+
 			exit();
 		}
-	
 
-	}		
+	}
 }
 
 $GLOBALS['wc_dpd_weblabel'] = new WC_DPD_Weblabel();
