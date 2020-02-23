@@ -10,6 +10,7 @@ Funkciók:
 * Utánvétes rendeléskor kimenti a végösszeget is. Hogy ez menjen, a Beállítások / Szállítás alján ki kell választani, hogy melyik fizetési mód az utánvétes, így tudni fogja, hogy mikor kell az árat is lementeni.
 
 Changelog
+
 2.0
 * Kompatiblis legújabb WooCommerce-el
 * Nincsenek PHp warningok
