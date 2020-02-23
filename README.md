@@ -13,7 +13,7 @@ Changelog
 
 2.0
 * Kompatiblis legújabb WooCommerce-el
-* Nincsenek PHp warningok
+* Nincsenek PHP warningok
 * Frissítve a DPD logó
 
 1.0.3
