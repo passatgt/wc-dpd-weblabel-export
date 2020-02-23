@@ -7,20 +7,33 @@
 	display: inline-block;
 	line-height: 28px;
 	padding: 0 0 0 24px;
-	background: url(dpd.png) no-repeat left center;
+	background: url(dpd-logo.svg) no-repeat left center;
 }
 
 .dpd-big-single-button a {
 	float: right !important;
 }
-		
-.type-shop_order .column-order_actions a.button.dpd-small-button {
-	float: left;
-	width: 26px;
-	height: 26px;
-	padding: 3px 2px;
+
+.widefat a.button.dpd-small-button {
+  position: relative;
+  width: 2em;
+  height: 2em;
+  border-color: #DC0032;
+  background: #FCE5EA;
 }
 
-.type-shop_order .column-order_actions a.button.dpd-small-button img {
+.widefat a.button.dpd-small-button:focus {
+	box-shadow: 0 0 0 1px #DC0032;
+}
+
+.widefat .column-wc_actions a.button.dpd-small-button img {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin: 0;
+	transform: translate(-50%, -50%);
+	object-fit: contain;
 	width: 16px;
+	height: 20px;
+	display: block;
 }
