@@ -4,7 +4,7 @@ Plugin Name: WooCommerce DPD Weblabel Export
 Plugin URI: http://visztpeter.me
 Description: Rendelésinfó exportálása DPD Weblabel importáláshoz
 Author: Viszt Péter
-Version: 2.0
+Version: 2.0.1
 */
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -25,7 +25,7 @@ class WC_DPD_Weblabel {
 		self::$plugin_basename = plugin_basename(__FILE__);
 		self::$plugin_url = plugin_dir_url(self::$plugin_basename);
 		self::$plugin_path = trailingslashit(dirname(__FILE__));
-		self::$version = '2.0';
+		self::$version = '2.0.1';
 
 		add_action( 'admin_init', array( $this, 'wc_dpd_weblabel_admin_init' ) );
 		add_filter( 'woocommerce_shipping_settings', array( $this, 'settings' ) );
@@ -131,7 +131,7 @@ class WC_DPD_Weblabel {
 			);
 
 			if(isset($_GET['order_id']) && $_GET['order_id'] != '') {
-				$orderids = array_map('intval', explode(',', $_GET['order_id']));
+				$orderids = array_map('intval', explode('|', $_GET['order_id']));
 			} else {
 
 				//Get all processing orders
@@ -170,23 +170,23 @@ class WC_DPD_Weblabel {
 				}
 
 				/*
-				A oszlop: Példák: „D” / „D-DOCRET” / „D-COD” / „D-CODEX” / „D-COD-DOCRET” / - Normál / Normál Szállítólevél viszaforgatással /Utánvétes csomag / Utánvételes csomag express / Utánvétes csomag szállítólevél visszaforgatással , minden esetben ennek kell lennie, ezekkel kell kezdődnie - kötelező / kötelező
-				B oszlop: 0.6 - Csomag súlya: elhagyható parcel weight: optional
-				C oszlop: "" / 111 - Normál csomag esetén nincs értelmezve / COD érték - elhagyható / kötelező COD value, used only for COD parcels
-				D oszlop: ”” / szla:111 - Normál csomag esetén nincs értelmezve / Beszedés indítéka (pl.: számlaszám) - elhagyható / kötelező COD reference optional
-				E oszlop: Referencia - Önök referencia (azonosító) száma, például számlaszám - elhagyható Parcel reference, optional
-				F oszlop: Címtörzs id - Megrendelő címnyilvántartási száma - elhagyható Address reference: optional G oszlop: Minta cegnév – címzett neve (vagy magánszemélynél a magánszemély neve) – Kötelező Address name Mandatory
-				H oszlop: Minta nev 2 - Céges környezetben a címzett neve . elhagyható Address name2 mandatory
-				I oszlop: Minta utca 1 - A cél címe - kötelező Address1: mandatory
-				J oszlop: Minta utca 2 - A cél címe - elhagyható Address2: mandatory
-				K oszlop: H - Ország betűkód – Kötelező Country code: mandatory
-				L oszlop: 1158 - Irányítószám – Kötelező Postal code: mandatory
-				M oszlop: Budapest - Város – Kötelező City: mandatory
-				N oszlop: 1234567 - Telefonszám (futár tudja értesíteni a címzettet) - elhagyható Phone number: optional
-				O oszlop: 7654321 - Fax szám – elhagyható Fax number: optional
-				P oszlop: valaki@valahol.hu - E-mail cím, ennek megléte esetén a csomag címzettje e-mailt kap a csomag felvétele (a mi telephelyünkön!) után – elhagyható Email address: optional
-				Q oszlop: Megjegyzés a céghez tárolható megjegyzés – elhagyható Remark for delivery:optional
-				R oszlop: IDM SMS telefonszám - elhagyható IDM SMS Number: optional
+				A oszlop: Példák: „D” / „D-DOCRET” / „D-COD” / „D-CODEX” / „D-COD-DOCRET” / - Normál / Normál Szállítólevél viszaforgatással /Utánvétes csomag / Utánvételes csomag express / Utánvétes csomag szállítólevél visszaforgatással , minden esetben ennek kell lennie, ezekkel kell kezdődnie - kötelező / kötelező
+				B oszlop: 0.6 - Csomag súlya: elhagyható parcel weight: optional
+				C oszlop: "" / 111 - Normál csomag esetén nincs értelmezve / COD érték - elhagyható / kötelező COD value, used only for COD parcels
+				D oszlop: ”” / szla:111 - Normál csomag esetén nincs értelmezve / Beszedés indítéka (pl.: számlaszám) - elhagyható / kötelező COD reference optional
+				E oszlop: Referencia - Önök referencia (azonosító) száma, például számlaszám - elhagyható Parcel reference, optional
+				F oszlop: Címtörzs id - Megrendelő címnyilvántartási száma - elhagyható Address reference: optional G oszlop: Minta cegnév – címzett neve (vagy magánszemélynél a magánszemély neve) – Kötelező Address name Mandatory
+				H oszlop: Minta nev 2 - Céges környezetben a címzett neve . elhagyható Address name2 mandatory
+				I oszlop: Minta utca 1 - A cél címe - kötelező Address1: mandatory
+				J oszlop: Minta utca 2 - A cél címe - elhagyható Address2: mandatory
+				K oszlop: H - Ország betűkód – Kötelező Country code: mandatory
+				L oszlop: 1158 - Irányítószám – Kötelező Postal code: mandatory
+				M oszlop: Budapest - Város – Kötelező City: mandatory
+				N oszlop: 1234567 - Telefonszám (futár tudja értesíteni a címzettet) - elhagyható Phone number: optional
+				O oszlop: 7654321 - Fax szám – elhagyható Fax number: optional
+				P oszlop: valaki@valahol.hu - E-mail cím, ennek megléte esetén a csomag címzettje e-mailt kap a csomag felvétele (a mi telephelyünkön!) után – elhagyható Email address: optional
+				Q oszlop: Megjegyzés a céghez tárolható megjegyzés – elhagyható Remark for delivery:optional
+				R oszlop: IDM SMS telefonszám - elhagyható IDM SMS Number: optional
 				*/
 
 				$csv_row = array();
