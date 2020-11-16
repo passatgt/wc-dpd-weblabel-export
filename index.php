@@ -104,7 +104,7 @@ class WC_DPD_Weblabel {
 	public function generate_csv() {
 
 		if (!empty($_GET['download_dpd_csv'])) {
-			if ( !current_user_can( 'administrator' ) )  {
+			if ( !current_user_can( 'manage_woocommerce' ) )  {
 				wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 			}
 
@@ -193,9 +193,9 @@ class WC_DPD_Weblabel {
 				$csv_row[0] = $order_type; //Csomag típusa, D normál, D-COD utánvétes
 				$csv_row[1] = $weight; //Súly
 				$csv_row[2] = ''; //Utánvét összeg
-					if($is_cod) { $csv_row[2] = $order->get_total(); }
+				if($is_cod) { $csv_row[2] = $order->get_total(); }
 				$csv_row[3] = ''; //Utánvét ref.
-					if($is_cod) { $csv_row[3] = $order->get_order_number(); }
+				if($is_cod) { $csv_row[3] = $order->get_order_number(); }
 				$csv_row[4] = $order->get_order_number(); //Referencia szám(rendelés szám)
 				$csv_row[5] = ''; //Címtörzs ID(???)
 
