@@ -1,6 +1,8 @@
 WooCommerce DPD Weblabel Export
 ======================
 
+Edit: ez a bővítmény már nem biztos, hogy kompatibilis a legújabb WooCommerce-el, de helyette használhatod az univerzális csomagpontos/címkenyomtatós bővítményem: https://visztpeter.me/woocommerce-csomagpont-integracio/
+
 Szállítási adatok exportálása DPD Weblabel programhoz WooCommerce-ből.
 
 Funkciók:
